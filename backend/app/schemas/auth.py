@@ -9,8 +9,15 @@ class SendOTPRequest(BaseModel):
     @validator('phone')
     def validate_phone(cls, v):
         # Simple validation for Iranian phone numbers
-        if not re.match(r'^\+98[0-9]{10}$', v):
-            raise ValueError('Phone must be in format +989121234567')
+        v = v.replace(" ", "").replace("-", "")
+    
+    # قبول کردن +989... و 09...
+        if re.match(r'^\+98[0-9]{10}$', v):
+            return v
+        elif re.match(r'^09[0-9]{9}$', v):
+            return "+98" + v[1:]  # تبدیل ۰۹۰۱ → +98901
+        else:
+            raise ValueError('Phone must be in format +989121234567 or 09121234567')
         return v
 
 class VerifyOTPRequest(BaseModel):
