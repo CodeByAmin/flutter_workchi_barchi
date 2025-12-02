@@ -1,7 +1,14 @@
 #config.py
-from pydantic_settings import BaseSettings
+from enum import Enum
 from typing import Optional
-import os
+from pydantic_settings import BaseSettings
+from enum import Enum
+from typing import Optional
+
+class SmsProvider(str, Enum):
+    MOCK = "mock"
+    DOCKER = "docker"
+    KAVENEGAR = "kavenegar"
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "JobConnect API"
@@ -22,7 +29,7 @@ class Settings(BaseSettings):
     
     # SMS Provider
     KAVENEGAR_API_KEY: Optional[str] = None
-    SMS_PROVIDER: str = "kavenegar"  # or "mock" for testing
+    SMS_PROVIDER: SmsProvider = SmsProvider.MOCK  # default
     
     # Environment
     ENVIRONMENT: str = "development"

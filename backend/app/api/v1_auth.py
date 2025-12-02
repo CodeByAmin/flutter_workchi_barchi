@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 import redis.asyncio as redis
 import random
 from datetime import datetime
+import json
 import asyncio
 from ..core.config import settings
 from ..core.security import create_access_token, create_refresh_token, verify_token
@@ -42,7 +43,7 @@ async def send_otp_endpoint(
     
     # Use pipeline for atomic operations
     async with redis_client.pipeline() as pipe:
-        await pipe.setex(otp_key, 120, str(otp_data))
+        await pipe.setex(otp_key, 120, json.dumps(otp_data))
         await pipe.incr(f"rate:otp:{request.phone}")
         await pipe.expire(f"rate:otp:{request.phone}", 3600)
         await pipe.execute()
@@ -161,7 +162,21 @@ async def refresh_token(
     access_token = create_access_token({"sub": str(user.id), "role": user.role})
     
     return {"access_token": access_token, "token_type": "bearer"}
-
+@router.get("/debug-otp/{phone}")
+async def get_debug_otp(phone: str):
+    """فقط تو محیط توسعه - برای تست سریع OTP"""
+    if settings.ENVIRONMENT != "development":
+        raise HTTPException(404)
+    
+    code = await redis_client.get(f"otp:{phone}")
+    if not code:
+        raise HTTPException(404, "No OTP found")
+    
+    return {
+        "phone": phone,
+        "otp": code,
+        "message": "این کد رو تو verify-otp بزن!"
+    }
 @router.post("/logout")
 async def logout(
     credentials: HTTPAuthorizationCredentials = Depends(security),

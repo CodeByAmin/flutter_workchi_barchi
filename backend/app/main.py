@@ -7,8 +7,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from .core.config import settings
+import logging
+
+
 from .db.base import engine, Base
 from .api import v1_auth, v1_users, v1_convos, v1_messages, v1_market
+logger = logging.getLogger("uvicorn.error")
+logger.setLevel(logging.INFO)
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup

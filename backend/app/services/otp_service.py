@@ -1,4 +1,4 @@
-# OTP_SERVICE.PY
+# services/OTP_SERVICE.PY
 import json
 from datetime import datetime
 from typing import Optional
@@ -6,16 +6,17 @@ import redis.asyncio as redis
 
 MAX_OTP_ATTEMPTS = 3
 
-async def send_otp(redis_client: redis.Redis, phone: str, otp: str) -> bool:
-    """Store OTP in Redis with metadata"""
-    otp_data = {
-        "code": otp,
-        "attempts": 0,
-        "created_at": datetime.utcnow().isoformat()
-    }
-    
-    await redis_client.setex(f"otp:{phone}", 120, json.dumps(otp_data))
-    return True
+from app.services.sms_providers.provider_enum import SmsProvider
+from app.services.sms_providers.provider_factory import send_sms
+from app.core.config import settings
+
+from app.services.sms_providers.provider_enum import SmsProvider
+from app.services.sms_providers.provider_factory import send_sms
+from app.core.config import settings
+
+def send_otp(phone: str, otp: str):
+    selected_provider = SmsProvider(settings.SMS_PROVIDER)
+    return send_sms(selected_provider, phone, otp)
 
 async def verify_otp_code(redis_client: redis.Redis, phone: str, otp: str) -> bool:
     """Verify OTP from Redis"""

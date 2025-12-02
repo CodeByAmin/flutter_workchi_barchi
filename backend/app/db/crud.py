@@ -11,18 +11,18 @@ def get_user_by_phone(db: Session, phone: str) -> Optional[models.User]:
 def get_user_by_id(db: Session, user_id: str) -> Optional[models.User]:
     return db.query(models.User).filter(models.User.id == user_id).one_or_none()
 
-def create_user(db: Session, phone: str, role: str = "worker", name: str | None = None) -> models.User:
+def create_user(db: Session, phone: str, role: Optional[str] = None, name: str | None = None) -> models.User:
     user = models.User(phone=phone, role=role, name=name)
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
 
-def get_or_create_user_by_phone(db: Session, phone: str, role: str = "worker") -> models.User:
+def get_or_create_user_by_phone(db: Session, phone: str, role: str = "none") -> models.User:
     user = get_user_by_phone(db, phone)
     if user:
         return user
-    return create_user(db, phone=phone, role=role)
+    return create_user(db, phone=phone, role=None)
 
 # Employer posts / job posts
 def create_employer_post(db: Session, employer_id: str, title: str, description: str, city_id: str, salary: float | None = None) -> models.EmployerPost:
