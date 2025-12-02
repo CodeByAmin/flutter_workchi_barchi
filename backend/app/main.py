@@ -3,7 +3,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import redis.asyncio as redis
-
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 from .core.config import settings
 from .db.base import engine, Base
 from .api import v1_auth, v1_users, v1_convos, v1_messages, v1_market
@@ -13,7 +15,7 @@ async def lifespan(app: FastAPI):
     print("Starting up...")
     
     # Create database tables
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)
     
     # Test Redis connection
     try:

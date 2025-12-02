@@ -4,12 +4,12 @@ from sqlalchemy.orm import Session
 from ..db.base import get_db
 from ..db import crud
 from ..schemas.user import UserProfileUpdate, UserProfileOut
+from ..core.deps import get_current_user_id   # این خط رو اضافه کن
 
 router = APIRouter()
 
 @router.get("/me", response_model=UserProfileOut)
-def get_my_profile(user_id: str = Depends(...), db: Session = Depends(get_db)):
-    # TODO: replace user_id dependency with real auth dependency
+def get_my_profile(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = crud.get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(404, "User not found")
@@ -20,17 +20,17 @@ def get_my_profile(user_id: str = Depends(...), db: Session = Depends(get_db)):
         "avatar_url": user.avatar_url,
         "role": user.role,
         "rating_avg": user.rating_avg,
-        "last_seen": user.last_seen
+        "last_seen": user.last_seen.isoformat() if user.last_seen else None
     }
 
 @router.put("/me", response_model=UserProfileOut)
-def update_profile(payload: UserProfileUpdate, user_id: str = Depends(...), db: Session = Depends(get_db)):
+def update_profile(payload: UserProfileUpdate, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = crud.get_user_by_id(db, user_id)
     if not user:
         raise HTTPException(404, "User not found")
-    if payload.name:
+    if payload.name is not None:
         user.name = payload.name
-    if payload.avatar_url:
+    if payload.avatar_url is not None:
         user.avatar_url = payload.avatar_url
     db.commit()
     db.refresh(user)
@@ -41,5 +41,5 @@ def update_profile(payload: UserProfileUpdate, user_id: str = Depends(...), db: 
         "avatar_url": user.avatar_url,
         "role": user.role,
         "rating_avg": user.rating_avg,
-        "last_seen": user.last_seen
+        "last_seen": user.last_seen.isoformat() if user.last_seen else None
     }

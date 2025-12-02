@@ -2,9 +2,9 @@
 from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Text, Numeric, Integer, Float
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
-import uuid
 from .base import Base
-
+from sqlalchemy.dialects.postgresql import JSON, UUID
+import uuid
 class City(Base):
     __tablename__ = "cities"
     
